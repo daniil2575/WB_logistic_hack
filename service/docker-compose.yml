@@ -4,8 +4,8 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ../Dd2WPGKz/train_team_track.parquet:/app/app/data/train_team_track.parquet:ro
-      - ./backend/app/data/submission.csv:/app/app/data/submission.csv:ro
+      - ../data/train_team_track.parquet:/app/app/data/train_team_track.parquet:ro
+      - ../artifacts/h28_h27b_gru_winsorized_target.pt:/app/app/data/h28_h27b_gru_winsorized_target.pt:ro
     environment:
       - PYTHONUNBUFFERED=1
     restart: unless-stopped

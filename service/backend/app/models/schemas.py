@@ -15,6 +15,7 @@ class ForecastResponse(BaseModel):
     route_id: int
     inference_timestamp: datetime
     predictions: list[ForecastStep]
+    source: str = "unknown"  # "gru_h27b_live" | "rolling_mean_fallback"
 
 
 # --- Transport ---

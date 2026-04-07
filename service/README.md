@@ -19,11 +19,10 @@
 ## Запуск
 
 ```bash
-# 1. Подготовить данные (один раз)
-# Положить train_team_track.parquet и submission.csv в нужные места
-python prepare_data.py
-
-# 2. Поднять сервисы
+# Поднять сервисы
+# Требуется:
+#   data/train_team_track.parquet       — исторические данные
+#   artifacts/h28_h27b_gru_winsorized_target.pt  — обученный чекпоинт GRU
 docker-compose up --build
 ```
 
@@ -86,15 +85,24 @@ service/
 
 ## Логика прогноза
 
-```python
-# Приоритет 1: submission.csv (предсказания ML-модели)
-if route_id in submission_data:
-    return submission predictions for 10 steps
-
-# Приоритет 2: fallback — rolling mean по историческим данным
-else:
-    return historical_mean * hour_scaling_factor
 ```
+GET /api/forecast/{route_id}  →  inference_ts = simulator.current_time
+         │
+         ▼
+ Загружен checkpoint?  (h28_h27b_gru_winsorized_target.pt)
+         │
+    да ──┼──► Взять последние 24 точки из train до inference_ts
+         │    Вычислить признаки: target_win, hour_sin/cos, dow_sin/cos
+         │    Нормализовать → GRU forward → денормализовать → × best_k
+         │    source = "gru_h27b_live"
+         │
+    нет ─┴──► Rolling mean (последние 48 точек) × hour-of-day scaling
+              source = "rolling_mean_fallback"
+```
+
+`source` возвращается в каждом ответе — фронтенд может показать, откуда прогноз.
+
+> **Важно:** submission.csv больше не используется в сервисе. Он нужен только для сабмита на лидерборд хакатона.
 
 ---
 
