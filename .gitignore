@@ -1,0 +1,38 @@
+# Data
+*.parquet
+*.csv
+artifacts/
+checkpoints/
+data/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+*.egg-info/
+
+# Node
+node_modules/
+dist/
+.vite/
+
+# Experiments (не нужны в чистом репо)
+repo_clone/
+gpu_experiments/
+gpu_experiments.zip
+catboost_experiments/
+catboost_experiments.zip
+blends_catboost/
+researches/
+Dd2WPGKz/
+*.zip
+*.ipynb
+submission_*.csv
+hyp1_*.csv
+
+# Misc
+.DS_Store
+*.pdf
+docs/
