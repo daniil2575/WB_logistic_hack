@@ -128,3 +128,20 @@ cd service && docker-compose up --build
 | **Ridge Stack (seed=42)** | **0.2558** |
 
 Подробнее об экспериментах — в [src/README.md](src/README.md).
+
+# С уважением и любовью,  команда Submission impossible DS CLUB 🧡
+
+Мы представляем студенческий клуб REU Data Science Club (РЭУ им. Г.В. Плеханова) — сообщество, которое помогает студентам и начинающим специалистам развиваться в Data Science, Machine Learning, Data Engineering и аналитике.
+
+## Наши площадки
+- VK: сообщество REU Data Science Club (ссылка доступна в разделе «Ресурсы» в описании TG-канала)
+- Telegram: [@reu_data_science_club](https://t.me/reu_data_science_club)
+- YouTube: [REU Data Science Club](https://www.youtube.com/@reudatascienceclub7070)
+
+## Участники команды
+
+| Роль                       | Имя               | Вуз     | Telegram                                                                 |
+|---------------------------|-------------------|---------|--------------------------------------------------------------------------|
+| Team Lead, ML Engineer, Backend | Даниил Садчиков | РЭУ     | [@sdd4cop](https://t.me/sdd4cop)                    |
+| ML engineer, Solution Architect              | Мария Касимцева   | РЭУ     | [@Maria_Kasim](https://t.me/Maria_Kasim)                                        |
+| ML engineer              | Даниил Кокорев | РЭУ | [@drkokorev](https://t.me/drkokorev)                                |
