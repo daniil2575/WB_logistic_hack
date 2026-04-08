@@ -4,6 +4,10 @@
 
 **Публичный LB:** 0.2558 (метрика: WAPE + |Relative Bias|, меньше — лучше)
 
+**Живой сервис:** [http://72.56.248.249:5173](http://72.56.248.249:5173)
+
+**Демо-видео:** [Google Drive](https://drive.google.com/file/d/1hrvmfQkNlbpB6BZT5h_k5dDTvwVvo5lD/view?usp=sharing)
+
 ---
 
 ## Структура репозитория

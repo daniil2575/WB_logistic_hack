@@ -2,6 +2,8 @@
 
 Ансамбль из 5 моделей + Ridge стекинг. Финальный LB: **0.2558**.
 
+**Живой сервис:** [http://72.56.248.249:5173](http://72.56.248.249:5173) | **Демо-видео:** [Google Drive](https://drive.google.com/file/d/1hrvmfQkNlbpB6BZT5h_k5dDTvwVvo5lD/view?usp=sharing)
+
 ---
 
 ## Архитектура ансамбля
