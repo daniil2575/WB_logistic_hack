@@ -4,16 +4,21 @@ import { metricsAPI, transportAPI } from '../api'
 import { useSimulator } from '../hooks/useSimulator'
 import { colors } from '../theme'
 import { useNavigate } from 'react-router-dom'
+import PageLoader from '../components/PageLoader'
 
 export default function Dashboard() {
   const { status } = useSimulator()
   const [metrics, setMetrics] = useState(null)
   const [orders, setOrders] = useState(null)
+  const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
 
   useEffect(() => {
-    metricsAPI.get().then(r => setMetrics(r.data)).catch(console.error)
-    transportAPI.getOrders().then(r => setOrders(r.data)).catch(console.error)
+    setLoading(true)
+    Promise.all([
+      metricsAPI.get().then(r => setMetrics(r.data)),
+      transportAPI.getOrders().then(r => setOrders(r.data)),
+    ]).catch(console.error).finally(() => setLoading(false))
   }, [status?.current_time])
 
   const kpis = metrics ? [
@@ -30,6 +35,7 @@ export default function Dashboard() {
   }).slice(0, 4) || []
 
   return (
+    <PageLoader loading={loading}>
     <div style={s.page}>
       <div style={s.pageHeader}>
         <div>
@@ -51,7 +57,7 @@ export default function Dashboard() {
               <div style={s.kpiValue}>{k.value ?? '—'}</div>
               <div style={s.kpiLabel}>{k.label}</div>
               {k.target && (
-                <div style={{ ...s.kpiTarget, color: k.ok ? colors.green : colors.yellow }}>
+                <div style={{ ...s.kpiTarget, color: k.ok ? colors.textSecondary : colors.textMuted }}>
                   цель: {k.target}
                 </div>
               )}
@@ -96,12 +102,13 @@ export default function Dashboard() {
       {orders && (
         <div style={s.summaryBar}>
           <SummaryItem label="Всего заявок" value={orders.total_orders} color={colors.wb1} />
-          <SummaryItem label="Общая стоимость" value={`₽${orders.total_cost_rub?.toLocaleString('ru-RU')}`} color={colors.yellow} />
-          <SummaryItem label="Активных маршрутов" value={metrics?.routes?.length ?? '—'} color={colors.green} />
+          <SummaryItem label="Общая стоимость" value={`₽${orders.total_cost_rub?.toLocaleString('ru-RU')}`} color={colors.textPrimary} />
+          <SummaryItem label="Активных маршрутов" value={metrics?.routes?.length ?? '—'} color={colors.textPrimary} />
           <SummaryItem label="Складов" value={new Set(orders.orders?.map(o => o.office_from_id)).size} color={colors.blue} />
         </div>
       )}
     </div>
+    </PageLoader>
   )
 }
 
@@ -117,7 +124,7 @@ function UrgentOrderRow({ order, currentTime }) {
         <span style={s.orderRoute}>Маршрут #{order.route_id}</span>
         <span style={s.orderVol}>{Math.round(order.forecast_volume)} посылок</span>
       </div>
-      <div style={{ ...s.orderTime, color: urgent ? colors.red : colors.yellow }}>
+      <div style={{ ...s.orderTime, color: urgent ? colors.red : colors.textMuted }}>
         {diff < 0 ? 'Просрочено' : `через ${diff} мин`}
       </div>
     </div>
@@ -126,7 +133,7 @@ function UrgentOrderRow({ order, currentTime }) {
 
 function RouteRow({ route }) {
   const pct = Math.round(route.avg_utilization * 100)
-  const color = pct >= 80 ? colors.green : pct >= 50 ? colors.yellow : colors.red
+  const color = pct >= 80 ? colors.wb1 : pct >= 50 ? colors.blue : '#3a5070'
   return (
     <div style={s.routeRow}>
       <MapPin size={12} color={colors.textMuted} />
@@ -149,15 +156,15 @@ function SummaryItem({ label, value, color }) {
   )
 }
 
-const VCOLORS = { large: colors.red, medium: colors.yellow, gazelle: colors.green }
+const VCOLORS = { large: colors.wb1, medium: colors.blue, gazelle: '#6b8fae' }
 
 const s = {
   page: { padding: 28, display: 'flex', flexDirection: 'column', gap: 20 },
   pageHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' },
   pageTitle: { fontSize: 26, fontWeight: 800, color: colors.textPrimary },
   pageSubtitle: { fontSize: 13, color: colors.textMuted, marginTop: 4 },
-  liveTag: { display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(16,224,128,0.1)', border: '1px solid rgba(16,224,128,0.25)', borderRadius: 20, padding: '4px 12px', fontSize: 11, fontWeight: 800, color: colors.green, letterSpacing: 2 },
-  liveDot: { width: 6, height: 6, borderRadius: '50%', background: colors.green, boxShadow: `0 0 8px ${colors.green}`, display: 'inline-block', animation: 'pulse 1.5s ease-in-out infinite' },
+  liveTag: { display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(203,17,171,0.1)', border: '1px solid rgba(203,17,171,0.25)', borderRadius: 20, padding: '4px 12px', fontSize: 11, fontWeight: 800, color: colors.wb1, letterSpacing: 2 },
+  liveDot: { width: 6, height: 6, borderRadius: '50%', background: colors.wb1, boxShadow: `0 0 8px ${colors.wb1}`, display: 'inline-block', animation: 'pulse 1.5s ease-in-out infinite' },
   kpiGrid: { display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 14 },
   kpiCard: { background: 'rgba(13,27,46,0.8)', border: '1px solid', borderRadius: 12, padding: 18, display: 'flex', gap: 14, alignItems: 'center', backdropFilter: 'blur(8px)' },
   kpiIcon: { width: 44, height: 44, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },

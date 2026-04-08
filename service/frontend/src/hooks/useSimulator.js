@@ -16,6 +16,8 @@ export function useSimulator() {
 
   useEffect(() => {
     fetchStatus()
+    const interval = setInterval(fetchStatus, 5000)
+    return () => clearInterval(interval)
   }, [fetchStatus])
 
   const tick = async () => {

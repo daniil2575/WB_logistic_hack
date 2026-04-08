@@ -3,15 +3,20 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGri
 import { metricsAPI, transportAPI } from '../api'
 import { useSimulator } from '../hooks/useSimulator'
 import { colors } from '../theme'
+import PageLoader from '../components/PageLoader'
 
 export default function Analytics() {
   const { status } = useSimulator()
   const [metrics, setMetrics] = useState(null)
   const [orders, setOrders] = useState(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    metricsAPI.get().then(r => setMetrics(r.data)).catch(console.error)
-    transportAPI.getOrders().then(r => setOrders(r.data)).catch(console.error)
+    setLoading(true)
+    Promise.all([
+      metricsAPI.get().then(r => setMetrics(r.data)),
+      transportAPI.getOrders().then(r => setOrders(r.data)),
+    ]).catch(console.error).finally(() => setLoading(false))
   }, [status?.current_time])
 
   // Top-20 routes by utilization for bar chart
@@ -24,9 +29,9 @@ export default function Analytics() {
 
   // Vehicle distribution
   const vehicleDist = orders ? [
-    { name: 'Фуры', value: orders.orders?.filter(o => o.vehicle.name === 'large').length || 0, color: colors.red },
-    { name: 'Средние', value: orders.orders?.filter(o => o.vehicle.name === 'medium').length || 0, color: colors.yellow },
-    { name: 'Газели', value: orders.orders?.filter(o => o.vehicle.name === 'gazelle').length || 0, color: colors.green },
+    { name: 'Фуры', value: orders.orders?.filter(o => o.vehicle.name === 'large').length || 0, color: colors.wb1 },
+    { name: 'Средние', value: orders.orders?.filter(o => o.vehicle.name === 'medium').length || 0, color: colors.blue },
+    { name: 'Газели', value: orders.orders?.filter(o => o.vehicle.name === 'gazelle').length || 0, color: '#6b8fae' },
   ] : []
 
   // Office distribution
@@ -51,6 +56,7 @@ export default function Analytics() {
   ] : []
 
   return (
+    <PageLoader loading={loading}>
     <div style={s.page}>
       <div style={s.pageHeader}>
         <div>
@@ -63,7 +69,7 @@ export default function Analytics() {
       <div style={s.kpiGrid}>
         {kpis.map((k, i) => (
           <div key={i} style={s.kpiCard}>
-            <div style={{ ...s.kpiVal, color: k.ok === null ? colors.textPrimary : k.ok ? colors.green : colors.yellow }}>
+            <div style={{ ...s.kpiVal, color: k.ok === null ? colors.textPrimary : k.ok ? colors.textPrimary : colors.textSecondary }}>
               {k.value}
             </div>
             <div style={s.kpiLabel}>{k.label}</div>
@@ -89,7 +95,7 @@ export default function Analytics() {
               />
               <Bar dataKey="util" fill={colors.wb1} radius={[3, 3, 0, 0]}>
                 {topRoutes.map((entry, i) => (
-                  <Cell key={i} fill={entry.util >= 75 ? colors.green : entry.util >= 50 ? colors.yellow : colors.red} />
+                  <Cell key={i} fill={entry.util >= 75 ? colors.wb1 : entry.util >= 50 ? colors.blue : '#3a5070'} />
                 ))}
               </Bar>
             </BarChart>
@@ -131,7 +137,7 @@ export default function Analytics() {
                 contentStyle={{ background: '#0d1b2e', border: `1px solid ${colors.border}`, borderRadius: 8 }}
                 formatter={v => [`₽${v.toLocaleString('ru-RU')}`, 'Расход']}
               />
-              <Bar dataKey="cost" fill={colors.yellow} radius={[0, 3, 3, 0]} />
+              <Bar dataKey="cost" fill={colors.blue} radius={[0, 3, 3, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -154,6 +160,7 @@ export default function Analytics() {
         </div>
       </div>
     </div>
+    </PageLoader>
   )
 }
 

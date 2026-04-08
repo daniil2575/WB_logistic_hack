@@ -6,6 +6,10 @@ services:
     volumes:
       - ../data/train_team_track.parquet:/app/app/data/train_team_track.parquet:ro
       - ../artifacts/h28_h27b_gru_winsorized_target.pt:/app/app/data/h28_h27b_gru_winsorized_target.pt:ro
+      - ../artifacts/h33_h23_lite.pt:/app/app/data/h33_h23_lite.pt:ro
+      - ../artifacts/h41a_h39_tft_lite.pt:/app/app/data/h41a_h39_tft_lite.pt:ro
+      - ../artifacts/lgbm_friday.joblib:/app/app/data/lgbm_friday.joblib:ro
+      - ../artifacts/ridge_stack.joblib:/app/app/data/ridge_stack.joblib:ro
     environment:
       - PYTHONUNBUFFERED=1
     restart: unless-stopped

@@ -27,6 +27,8 @@ def get_current_time() -> pd.Timestamp:
 
 def set_time(ts: pd.Timestamp) -> pd.Timestamp:
     global _current_time
+    if ts.tzinfo is not None:
+        ts = ts.tz_convert("UTC").tz_localize(None)
     min_t, max_t = get_time_bounds()
     if ts < min_t:
         ts = min_t

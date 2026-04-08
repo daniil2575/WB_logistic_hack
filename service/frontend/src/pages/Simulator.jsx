@@ -15,10 +15,15 @@ export default function Simulator() {
   const max = new Date(status.max_time)
   const progress = ((current - min) / (max - min)) * 100
 
+  const toLocalIso = (date) => {
+    const pad = n => String(n).padStart(2, '0')
+    return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}:00`
+  }
+
   const handleSlider = (e) => {
     const pct = parseFloat(e.target.value) / 100
     const ts = new Date(min.getTime() + pct * (max.getTime() - min.getTime()))
-    setTime(ts.toISOString())
+    setTime(toLocalIso(ts))
   }
 
   const handleTick = async () => {
@@ -32,15 +37,15 @@ export default function Simulator() {
   }
 
   const handleCustomTime = () => {
-    if (customTime) setTime(new Date(customTime).toISOString())
+    if (customTime) setTime(customTime)
   }
 
   const presets = [
     { label: 'Начало данных', ts: status.min_time },
-    { label: 'Середина', ts: new Date(min.getTime() + (max - min) / 2).toISOString() },
-    { label: 'Последние 24ч', ts: new Date(max.getTime() - 24 * 3600000).toISOString() },
-    { label: 'Последние 2ч', ts: new Date(max.getTime() - 2 * 3600000).toISOString() },
-    { label: 'Тест (30 мая 10:30)', ts: new Date(max).toISOString() },
+    { label: 'Середина', ts: toLocalIso(new Date(min.getTime() + (max - min) / 2)) },
+    { label: 'Последние 24ч', ts: toLocalIso(new Date(max.getTime() - 24 * 3600000)) },
+    { label: 'Последние 2ч', ts: toLocalIso(new Date(max.getTime() - 2 * 3600000)) },
+    { label: 'Тест (30 мая 10:30)', ts: status.max_time },
   ]
 
   return (
@@ -51,7 +56,7 @@ export default function Simulator() {
           <p style={s.pageSubtitle}>Управление временем для демонстрации работы сервиса</p>
         </div>
         <div style={s.badge}>
-          <Zap size={13} color={colors.green} />
+          <Zap size={13} color={colors.wb1} />
           Мок-режим
         </div>
       </div>
@@ -127,7 +132,7 @@ export default function Simulator() {
               <div style={s.controlsTitle}>История шагов</div>
               {tickLog.map((l, i) => (
                 <div key={l.ts} style={{ ...s.logRow, opacity: 1 - i * 0.1 }}>
-                  <Zap size={10} color={colors.green} />
+                  <Zap size={10} color={colors.wb1} />
                   <span style={s.logText}>{l.from} → {l.to}</span>
                   <span style={s.logTs}>+30 мин</span>
                 </div>
@@ -194,7 +199,7 @@ const s = {
   pageHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' },
   pageTitle: { fontSize: 26, fontWeight: 800, color: colors.textPrimary },
   pageSubtitle: { fontSize: 13, color: colors.textMuted, marginTop: 4 },
-  badge: { display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(16,224,128,0.1)', border: '1px solid rgba(16,224,128,0.2)', borderRadius: 8, padding: '6px 12px', fontSize: 12, color: colors.green, fontWeight: 600 },
+  badge: { display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(203,17,171,0.08)', border: '1px solid rgba(203,17,171,0.2)', borderRadius: 8, padding: '6px 12px', fontSize: 12, color: colors.wb1, fontWeight: 600 },
   layout: { display: 'grid', gridTemplateColumns: '1fr 340px', gap: 16 },
   mainCol: { display: 'flex', flexDirection: 'column', gap: 14 },
   infoCol: { display: 'flex', flexDirection: 'column', gap: 14 },

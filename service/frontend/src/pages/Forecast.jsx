@@ -4,13 +4,14 @@ import { forecastAPI } from '../api'
 import { useSimulator } from '../hooks/useSimulator'
 import { colors } from '../theme'
 import { Search } from 'lucide-react'
+import PageLoader from '../components/PageLoader'
 
 export default function Forecast() {
   const { status } = useSimulator()
   const routes = status?.available_routes || []
   const [selectedRoute, setSelectedRoute] = useState(null)
   const [forecast, setForecast] = useState(null)
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
 
   const filteredRoutes = routes.filter(r => String(r).includes(search)).slice(0, 60)
@@ -20,7 +21,7 @@ export default function Forecast() {
   }, [routes])
 
   useEffect(() => {
-    if (!selectedRoute) return
+    if (selectedRoute === null) return
     setLoading(true)
     forecastAPI.getRoute(selectedRoute)
       .then(r => setForecast(r.data))
@@ -31,14 +32,20 @@ export default function Forecast() {
   const chartData = forecast?.predictions?.map(p => ({
     time: new Date(p.timestamp).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
     value: p.y_pred,
+    lo: p.y_pred_lo ?? p.y_pred,
+    hi: p.y_pred_hi ?? p.y_pred,
+    band: p.y_pred_lo != null ? [p.y_pred_lo, p.y_pred_hi] : null,
     step: p.step,
   })) || []
+
+  const hasConfidence = chartData.some(d => d.band != null)
 
   const total = chartData.reduce((s, d) => s + d.value, 0)
   const peak = chartData.reduce((m, d) => d.value > m.value ? d : m, { value: 0 })
   const avg = total / (chartData.length || 1)
 
   return (
+    <PageLoader loading={loading}>
     <div style={s.page}>
       <div style={s.pageHeader}>
         <div>
@@ -80,8 +87,8 @@ export default function Forecast() {
               <div style={s.statsRow}>
                 <StatBadge label="Маршрут" value={`#${forecast.route_id}`} color={colors.wb1} />
                 <StatBadge label="Всего за окно" value={`${Math.round(total)} посылок`} color={colors.blue} />
-                <StatBadge label="Пик" value={`${Math.round(peak.value)} (${peak.time})`} color={colors.red} />
-                <StatBadge label="Среднее/шаг" value={`${avg.toFixed(1)}`} color={colors.yellow} />
+                <StatBadge label="Пик" value={`${Math.round(peak.value)} (${peak.time})`} color={colors.wb1} />
+                <StatBadge label="Среднее/шаг" value={`${avg.toFixed(1)}`} color={colors.blue} />
               </div>
 
               <div style={s.chartCard}>
@@ -103,9 +110,19 @@ export default function Forecast() {
                       <Tooltip
                         contentStyle={{ background: '#0d1b2e', border: `1px solid ${colors.border}`, borderRadius: 8 }}
                         labelStyle={{ color: colors.textSecondary, fontSize: 12 }}
+                        formatter={(v, name) => {
+                          if (name === 'hi') return [`${v.toFixed(1)}`, 'Верхняя граница']
+                          if (name === 'lo') return [`${v.toFixed(1)}`, 'Нижняя граница']
+                          return [`${v.toFixed(1)} посылок`, 'Прогноз']
+                        }}
                         itemStyle={{ color: '#e87cda' }}
-                        formatter={v => [`${v.toFixed(1)} посылок`, 'Прогноз']}
                       />
+                      {hasConfidence && (
+                        <Area type="monotone" dataKey="hi" stroke="none" fill={colors.wb1} fillOpacity={0.10} legendType="none" />
+                      )}
+                      {hasConfidence && (
+                        <Area type="monotone" dataKey="lo" stroke="none" fill={colors.bg} fillOpacity={1} legendType="none" />
+                      )}
                       <Area type="monotone" dataKey="value" stroke={colors.wb1} strokeWidth={2.5} fill="url(#fg)" dot={{ fill: colors.wb1, r: 4, strokeWidth: 0 }} activeDot={{ r: 6 }} />
                     </AreaChart>
                   </ResponsiveContainer>
@@ -114,19 +131,24 @@ export default function Forecast() {
 
               {/* Step table */}
               <div style={s.table}>
-                <div style={s.tableHeader}>
-                  {['Шаг', 'Время', 'Прогноз, посылок', 'Уровень'].map(h => (
+                <div style={{ ...s.tableHeader, gridTemplateColumns: hasConfidence ? 'repeat(5,1fr)' : 'repeat(4,1fr)' }}>
+                  {['Шаг', 'Время', 'Прогноз, посылок', ...(hasConfidence ? ['Диапазон'] : []), 'Уровень'].map(h => (
                     <div key={h} style={s.th}>{h}</div>
                   ))}
                 </div>
                 {chartData.map((row, i) => {
                   const level = row.value >= avg * 1.3 ? 'Высокий' : row.value >= avg * 0.7 ? 'Средний' : 'Низкий'
-                  const lColor = level === 'Высокий' ? colors.red : level === 'Средний' ? colors.yellow : colors.green
+                  const lColor = level === 'Высокий' ? colors.wb1 : level === 'Средний' ? colors.blue : colors.textMuted
                   return (
-                    <div key={i} style={{ ...s.tableRow, background: i % 2 === 0 ? 'rgba(255,255,255,0.02)' : 'transparent' }}>
+                    <div key={i} style={{ ...s.tableRow, gridTemplateColumns: hasConfidence ? 'repeat(5,1fr)' : 'repeat(4,1fr)', background: i % 2 === 0 ? 'rgba(255,255,255,0.02)' : 'transparent' }}>
                       <div style={s.td}>+{row.step * 30} мин</div>
                       <div style={s.td}>{row.time}</div>
                       <div style={{ ...s.td, fontWeight: 700, color: colors.textPrimary }}>{row.value.toFixed(1)}</div>
+                      {hasConfidence && (
+                        <div style={{ ...s.td, color: colors.textMuted, fontSize: 12 }}>
+                          {row.lo.toFixed(0)}–{row.hi.toFixed(0)}
+                        </div>
+                      )}
                       <div style={{ ...s.td, color: lColor, fontWeight: 600 }}>{level}</div>
                     </div>
                   )
@@ -140,6 +162,7 @@ export default function Forecast() {
         </div>
       </div>
     </div>
+    </PageLoader>
   )
 }
 

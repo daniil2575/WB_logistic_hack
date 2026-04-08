@@ -9,6 +9,8 @@ class ForecastStep(BaseModel):
     step: int
     timestamp: datetime
     y_pred: float
+    y_pred_lo: Optional[float] = None   # ~10th percentile (spread of base models)
+    y_pred_hi: Optional[float] = None   # ~90th percentile (spread of base models)
 
 
 class ForecastResponse(BaseModel):
@@ -44,6 +46,8 @@ class TransportOrdersResponse(BaseModel):
     orders: list[TransportOrder]
     total_orders: int
     total_cost_rub: int
+    naive_cost_rub: int = 0     # cost if we just picked one big-enough truck per window
+    savings_rub: int = 0        # total_cost_rub savings vs naive
 
 
 # --- Metrics ---

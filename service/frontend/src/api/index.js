@@ -13,8 +13,14 @@ export const forecastAPI = {
 }
 
 export const transportAPI = {
-  getOrders: (t, routeId) => api.get('/transport/orders', {
-    params: { ...(t ? { t } : {}), ...(routeId ? { route_id: routeId } : {}) }
+  getOrders: (t, routeId, tariffs) => api.get('/transport/orders', {
+    params: {
+      ...(t ? { t } : {}),
+      ...(routeId ? { route_id: routeId } : {}),
+      ...(tariffs?.gazelle ? { cost_gazelle: tariffs.gazelle } : {}),
+      ...(tariffs?.medium  ? { cost_medium:  tariffs.medium  } : {}),
+      ...(tariffs?.large   ? { cost_large:   tariffs.large   } : {}),
+    }
   }),
 }
 

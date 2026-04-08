@@ -18,11 +18,11 @@ export const colors = {
   textSecondary: '#8ba3c7',
   textMuted: '#4a6080',
 
-  // Status
-  green: '#10e080',
-  yellow: '#f5a623',
-  red: '#ff4d6d',
-  blue: '#4da6ff',
+  // Status — muted, professional
+  green: '#3dd68c',
+  yellow: '#a08c5b',
+  red: '#c96070',
+  blue: '#5b8db8',
 }
 
 export const fonts = {
