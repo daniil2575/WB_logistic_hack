@@ -80,41 +80,52 @@ Bias  = |Σŷ / Σy - 1|        (смещение уровня)
 ### 1. Обучение модели
 
 ```bash
-cd src
+# Запускать из корня репозитория
 
 # Шаг 1: LGBM и Naive (не входят в run_full_pipeline)
-python train_lgbm.py \
-  --train ../data/train_team_track.parquet \
-  --test ../data/test_team_track.parquet \
-  --outdir ../artifacts
+python src/train_lgbm.py \
+  --train data/train_team_track.parquet \
+  --test data/test_team_track.parquet \
+  --outdir artifacts
 
-python train_seasonal_naive.py \
-  --train ../data/train_team_track.parquet \
-  --test ../data/test_team_track.parquet \
-  --outdir ../artifacts
+python src/train_seasonal_naive.py \
+  --train data/train_team_track.parquet \
+  --test data/test_team_track.parquet \
+  --outdir artifacts
 
 # Шаг 2: GRU + TFT + Ridge Stack
-python run_full_pipeline.py \
-  --train ../data/train_team_track.parquet \
-  --test ../data/test_team_track.parquet \
-  --artifacts-dir ../artifacts
+python src/run_full_pipeline.py \
+  --train data/train_team_track.parquet \
+  --test data/test_team_track.parquet \
+  --artifacts-dir artifacts
 ```
 
 Итоговый сабмит: `artifacts/submission_h41b_stack_h27b_h39_h23.csv`
 
 ### 2. Запуск сервиса
 
-```bash
-# Нужны два файла:
-#   data/train_team_track.parquet
-#   artifacts/h28_h27b_gru_winsorized_target.pt  (появится после шага 1)
+Перед запуском в корне репозитория должны лежать:
 
+```
+data/
+  train_team_track.parquet        # данные хакатона (скачать с платформы)
+artifacts/
+  h28_h27b_gru_winsorized_target.pt   # появляется после шага 1
+  h33_h23_lite.pt
+  h41a_h39_tft_lite.pt
+  lgbm_friday.joblib
+  ridge_stack.joblib
+```
+
+```bash
 cd service && docker-compose up --build
 ```
 
 - Frontend: http://localhost:5173
 - Backend API: http://localhost:8000
 - Swagger: http://localhost:8000/docs
+
+> Первый запрос к API (Dashboard) занимает ~8 секунд — прогревается ML-инференс. Последующие — мгновенные (кеш).
 
 ---
 

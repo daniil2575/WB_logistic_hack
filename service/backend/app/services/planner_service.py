@@ -168,6 +168,9 @@ def _build_orders_for_route(
 # Public API
 # ---------------------------------------------------------------------------
 
+_orders_cache: dict[str, TransportOrdersResponse] = {}
+
+
 def get_transport_orders(
     inference_ts: pd.Timestamp | None = None,
     route_id: int | None = None,
@@ -175,6 +178,12 @@ def get_transport_orders(
 ) -> TransportOrdersResponse:
     if inference_ts is None:
         inference_ts = get_current_time()
+
+    # Cache full-route responses (no route_id filter, no custom tariffs)
+    if route_id is None and not tariffs:
+        cache_key = str(inference_ts)
+        if cache_key in _orders_cache:
+            return _orders_cache[cache_key]
 
     vehicles = _get_vehicles(tariffs)
     route_office = get_route_office_map()
@@ -209,7 +218,7 @@ def get_transport_orders(
     total_cost = sum(o.vehicle.cost_rub for o in all_orders)
     savings = max(0, naive_cost_total - total_cost)
 
-    return TransportOrdersResponse(
+    result = TransportOrdersResponse(
         simulation_time=inference_ts,
         orders=all_orders,
         total_orders=len(all_orders),
@@ -217,3 +226,10 @@ def get_transport_orders(
         naive_cost_rub=naive_cost_total,
         savings_rub=savings,
     )
+
+    if route_id is None and not tariffs:
+        _orders_cache[cache_key] = result
+        if len(_orders_cache) > 10:
+            del _orders_cache[next(iter(_orders_cache))]
+
+    return result

@@ -23,6 +23,7 @@ N_STEPS = 10
 HISTORY_LOOKBACK = 400  # enough for naive (336) + lags (48)
 
 _forecast_cache: dict[str, list] = {}
+_route_forecast_cache: dict[str, "ForecastResponse"] = {}
 
 
 def _rolling_forecast(route_id: int, inference_ts: pd.Timestamp) -> list[float]:
@@ -56,6 +57,10 @@ def get_forecast(route_id: int, inference_ts: pd.Timestamp | None = None) -> For
     if inference_ts is None:
         inference_ts = get_current_time()
 
+    route_cache_key = f"{route_id}:{inference_ts}"
+    if route_cache_key in _route_forecast_cache:
+        return _route_forecast_cache[route_cache_key]
+
     source = "rolling_mean_fallback"
     preds: list[float] | None = None
     lows: list[float] | None = None
@@ -83,16 +88,21 @@ def get_forecast(route_id: int, inference_ts: pd.Timestamp | None = None) -> For
         for i, pred in enumerate(preds)
     ]
 
-    return ForecastResponse(
+    response = ForecastResponse(
         route_id=route_id,
         inference_timestamp=inference_ts,
         predictions=steps,
         source=source,
     )
+    _route_forecast_cache[route_cache_key] = response
+    if len(_route_forecast_cache) > 200:
+        del _route_forecast_cache[next(iter(_route_forecast_cache))]
+    return response
 
 
 def invalidate_cache() -> None:
     _forecast_cache.clear()
+    _route_forecast_cache.clear()
 
 
 def get_all_forecasts(inference_ts: pd.Timestamp | None = None, limit: int = 10) -> list[ForecastResponse]:
