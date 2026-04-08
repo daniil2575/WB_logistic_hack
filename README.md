@@ -110,11 +110,17 @@ python src/run_full_pipeline.py \
 data/
   train_team_track.parquet        # данные хакатона (скачать с платформы)
 artifacts/
-  h28_h27b_gru_winsorized_target.pt   # появляется после шага 1
+  h28_h27b_gru_winsorized_target.pt
   h33_h23_lite.pt
   h41a_h39_tft_lite.pt
   lgbm_friday.joblib
   ridge_stack.joblib
+```
+
+**Скачать артефакты модели:** [Google Drive](https://drive.google.com/drive/folders/1NVo-gQ0iFUz3EeaPzmZJqHyquDnI3EpS)
+
+```bash
+# Распаковать в папку artifacts/ в корне репозитория
 ```
 
 ```bash
